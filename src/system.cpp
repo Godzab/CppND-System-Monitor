@@ -26,16 +26,16 @@ vector<Process>& System::Processes() {
     return processes_;
 }
 
-std::string System::Kernel() {
-    return LinuxParser::Kernel();
+std::string System::Kernel() { 
+	return LinuxParser::Kernel();
 }
 
 float System::MemoryUtilization() {
     return LinuxParser::MemoryUtilization();
 }
 
-std::string System::OperatingSystem() {
-    return LinuxParser::OperatingSystem();
+std::string System::OperatingSystem() { 
+	return LinuxParser::OperatingSystem();
 }
 
 int System::RunningProcesses() {

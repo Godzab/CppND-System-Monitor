@@ -6,7 +6,7 @@ public:
     float Utilization();
     Processor() : cpu_utilization{0, 0} {};
 
-private:
+ private:
     long total_capacity_;
     long cpu_utilization[2];
 };
