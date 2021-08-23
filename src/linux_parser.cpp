@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <numeric> 
 
 #include "linux_parser.h"
 
@@ -107,7 +108,7 @@ long LinuxParser::UpTime() {
 
 long LinuxParser::Jiffies() {
     vector<long> cpu_values = LinuxParser::CpuUtilization();
-    long total_capacity = accumulate(cpu_values.begin(), cpu_values.end(), 0);
+    long total_capacity = std::accumulate(cpu_values.begin(), cpu_values.end(), 0);
     return total_capacity;
 }
 
