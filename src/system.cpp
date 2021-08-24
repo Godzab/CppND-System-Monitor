@@ -17,6 +17,7 @@ using std::vector;
 Processor& System::Cpu() { return cpu_; }
 
 vector<Process>& System::Processes() {
+    processes_ = {};
     vector<int> pids = LinuxParser::Pids();
     while(!pids.empty()){
         Process p(pids.back());
