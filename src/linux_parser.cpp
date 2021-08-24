@@ -118,7 +118,7 @@ long LinuxParser::ActiveJiffies(int pid) {
     long stat_item;
     vector<long> stat_data{};
     string str_line, tmp;
-    long u_time, s_time, cu_time, cs_time, total_time;
+    long u_time, s_time, cu_time, cs_time, total_time = 0;
 
     if (p_file.is_open()) {
         getline(p_file, str_line);
@@ -129,16 +129,18 @@ long LinuxParser::ActiveJiffies(int pid) {
         }
     }
 
-    //Positions are offset (-3) because vector skipped first 3 elements.
-    u_time = stat_data.at(11);
-    s_time = stat_data.at(12);
-    cu_time = stat_data.at(13);
-    cs_time = stat_data.at(14);
+    if(stat_data.size() >= 14){
+        //Positions are offset (-3) because vector skipped first 3 elements.
+        u_time = stat_data.at(11);
+        s_time = stat_data.at(12);
+        cu_time = stat_data.at(13);
+        cs_time = stat_data.at(14);
 
-    total_time = u_time + s_time;
-    total_time += cu_time + cs_time;
-    total_time /= Hertz;
-
+        total_time = u_time + s_time;
+        total_time += cu_time + cs_time;
+        total_time /= Hertz;
+    }
+    
     return total_time;
 }
 
@@ -296,7 +298,7 @@ long LinuxParser::UpTime(int pid) {
     long uptime = LinuxParser::UpTime();
     vector<long> stat_data{};
     string str_line, tmp;
-    long start_time, seconds;
+    long start_time, seconds = 0;
 
 
     if (p_file.is_open()) {
@@ -308,8 +310,11 @@ long LinuxParser::UpTime(int pid) {
         }
     }
 
-    start_time = stat_data.at(18);
-    seconds = uptime - (start_time / Hertz);
+    if(stat_data.size()>=18){
+        start_time = stat_data.at(18);
+        seconds = uptime - (start_time / Hertz);
+    }
+
     return seconds;
 }
 
