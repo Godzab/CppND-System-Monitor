@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <iomanip>
 
 #include "linux_parser.h"
 #include "process.h"
@@ -20,8 +21,8 @@ float Process::CpuUtilization() const {
 }
 
 string Process::Command() {
-    std::string command =  LinuxParser::Command(this->Pid());
-
+  	std::string command = LinuxParser::Command(this->Pid());
+  	return (command.length() > 50 ) ? command.substr (0,50)+"..." : command;
 }
 
 string Process::Ram() {

@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include <numeric>
+#include <numeric> 
 
 #include "linux_parser.h"
 
@@ -14,25 +14,6 @@ using std::stof;
 using std::string;
 using std::to_string;
 using std::vector;
-
-template<typename T>
-T findValueByKey(std::string const &keyFilter, std::string const &filename) {
-    std::string line, key;
-    T value;
-
-    std::ifstream stream(kProcDirectory + filename);
-    if (stream.is_open()) {
-        while (std::getline(stream, line)) {
-            std::istringstream linestream(line);
-            while (linestream >> key >> value) {
-                if (key == keyFilter) {
-                    return value;
-                }
-            }
-        }
-    }
-    return value;
-}
 
 // DONE: An example of how to read data from the filesystem
 string LinuxParser::OperatingSystem() {
@@ -91,17 +72,30 @@ vector<int> LinuxParser::Pids() {
 }
 
 float LinuxParser::MemoryUtilization() {
-    string memTotal = filterMemTotalString;
-    string memFree = filterMemFreeString;
-    float Total = findValueByKey<float>(memTotal, kMeminfoFilename);// "/proc/memInfo"
-    float Free = findValueByKey<float>(memFree, kMeminfoFilename);
-    return (Total - Free) / Total;
+    string line;
+    string key;
+    string type;
+    double value, total_memory, free_memory;
+    std::ifstream filestream(kProcDirectory + kMeminfoFilename);
+    if (filestream.is_open()) {
+        while (std::getline(filestream, line)) {
+            std::istringstream linestream(line);
+            while (linestream >> key >> value >> type) {
+                if (key == "MemTotal:") {
+                    total_memory = value;
+                }
+                if (key == "MemFree:") {
+                    free_memory = value;
+                }
+            }
+        }
+    }
+    return static_cast<float>(total_memory - free_memory) / total_memory;
 }
 
 long LinuxParser::UpTime() {
     string line;
-    float start_time;
-    float end_time;
+    float start_time, end_time;
     std::ifstream filestream(kProcDirectory + kUptimeFilename);
     if (filestream.is_open()) {
         while (std::getline(filestream, line)) {
@@ -123,13 +117,8 @@ long LinuxParser::ActiveJiffies(int pid) {
     p_file.open(kProcDirectory + std::to_string(pid) + kStatFilename);
     long stat_item;
     vector<long> stat_data{};
-    string str_line;
-    string tmp;
-    long u_time;
-    long s_time;
-    long cu_time;
-    long cs_time;
-    long total_time = 0;
+    string str_line, tmp;
+    long u_time, s_time, cu_time, cs_time, total_time = 0;
 
     if (p_file.is_open()) {
         getline(p_file, str_line);
@@ -138,10 +127,9 @@ long LinuxParser::ActiveJiffies(int pid) {
         while (stream_line >> stat_item) {
             stat_data.push_back(stat_item);
         }
-        p_file.close();
     }
 
-    if (stat_data.size() >= 14) {
+    if(stat_data.size() >= 14){
         //Positions are offset (-3) because vector skipped first 3 elements.
         u_time = stat_data.at(11);
         s_time = stat_data.at(12);
@@ -203,7 +191,7 @@ int LinuxParser::TotalProcesses() {
         while (getline(stats_file, line)) {
             std::istringstream stream_line(line);
             stream_line >> itr_line;
-            if (itr_line == filterProcesses) {
+            if (itr_line == "processes") {
                 stream_line >> target_line;
                 break;
             }
@@ -223,7 +211,7 @@ int LinuxParser::RunningProcesses() {
         while (getline(stats_file, line)) {
             std::istringstream stream_line(line);
             stream_line >> itr_line;
-            if (itr_line == filterRunningProcesses) {
+            if (itr_line == "procs_running") {
                 stream_line >> target_line;
                 break;
             }
@@ -244,10 +232,23 @@ string LinuxParser::Command(int pid) {
 }
 
 string LinuxParser::Ram(int pid) {
+    std::ifstream p_file;
+    p_file.open(kProcDirectory + std::to_string(pid) + kStatusFilename);
     long memory_usage = 0;
-    string memSize = filterProcMem;
-    float memory_usage = findValueByKey<float>(memSize, kProcDirectory + std::to_string(pid) + kStatusFilename);
-    memory_usage /= 1024; // Convert to MB
+    string str_line, label, result;
+
+    if (p_file.is_open()) {
+        while (getline(p_file, str_line)) {
+            std::istringstream stream_line(str_line);
+            stream_line >> label;
+            if (label == "VmSize:") {
+                stream_line >> memory_usage;
+                break;
+            }
+        }
+        memory_usage /= 1024;
+    }
+
     return std::to_string(memory_usage);
 }
 
@@ -261,7 +262,7 @@ string LinuxParser::Uid(int pid) {
         while (getline(p_file, str_line)) {
             std::istringstream stream_line(str_line);
             stream_line >> label;
-            if (label == filterUID) {
+            if (label == "Uid:") {
                 stream_line >> uid;
                 break;
             }
@@ -309,7 +310,7 @@ long LinuxParser::UpTime(int pid) {
         }
     }
 
-    if (stat_data.size() >= 18) {
+    if(stat_data.size()>=18){
         start_time = stat_data.at(18);
         seconds = uptime - (start_time / Hertz);
     }
@@ -320,7 +321,7 @@ long LinuxParser::UpTime(int pid) {
 float LinuxParser::CpuUtilization(int pid) {
     long process_uptime = LinuxParser::UpTime(pid);
     long process_jiffies = LinuxParser::ActiveJiffies(pid);
-    if (process_jiffies > 0) {
+    if(process_jiffies > 0){
         return static_cast<float>(process_jiffies) / process_uptime;
     }
     return 0.0;
