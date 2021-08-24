@@ -140,7 +140,7 @@ long LinuxParser::ActiveJiffies(int pid) {
         total_time += cu_time + cs_time;
         total_time /= Hertz;
     }
-    
+
     return total_time;
 }
 

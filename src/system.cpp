@@ -8,6 +8,7 @@
 #include "processor.h"
 #include "system.h"
 #include "linux_parser.h"
+#include <algorithm>
 
 using std::set;
 using std::size_t;
@@ -23,6 +24,9 @@ vector<Process>& System::Processes() {
         processes_.push_back(p);
         pids.pop_back();
     }
+    std::sort(processes_.begin(), processes_.end(),[](Process &a, Process &b) {
+        return (b < a);
+    });
     return processes_;
 }
 
