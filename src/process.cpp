@@ -20,7 +20,8 @@ float Process::CpuUtilization() const {
 }
 
 string Process::Command() {
-    return LinuxParser::Command(this->Pid());
+    std::string command =  LinuxParser::Command(this->Pid());
+
 }
 
 string Process::Ram() {

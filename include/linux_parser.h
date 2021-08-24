@@ -18,6 +18,15 @@ namespace LinuxParser {
     const std::string kOSPath{"/etc/os-release"};
     const std::string kPasswordPath{"/etc/passwd"};
 
+//Filter keys
+    const string filterProcesses("processes");
+    const string filterRunningProcesses("procs_running");
+    const string filterMemTotalString("MemTotal:");
+    const string filterMemFreeString("MemFree:");
+    const string filterCpu("cpu");
+    const string filterUID("Uid:");
+    const string filterProcMem("VmRSS:");
+
 // System
     float MemoryUtilization();
     long UpTime();

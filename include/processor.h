@@ -3,7 +3,7 @@
 
 class Processor {
 public:
-    float Utilization();
+    double Utilization();
     Processor() : cpu_utilization{0, 0} {};
 
  private:
