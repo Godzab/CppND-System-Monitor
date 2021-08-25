@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <numeric>
+#include<bits/stdc++.h>
 
 #include "linux_parser.h"
 
@@ -20,7 +21,7 @@ T findValueByKey(std::string const &keyFilter, std::string const &filename) {
     std::string line, key;
     T value;
 
-    std::ifstream stream(kProcDirectory + filename);
+    std::ifstream stream(LinuxParser::kProcDirectory + filename);
     if (stream.is_open()) {
         while (std::getline(stream, line)) {
             std::istringstream linestream(line);
@@ -31,7 +32,7 @@ T findValueByKey(std::string const &keyFilter, std::string const &filename) {
             }
         }
     }
-    return value;
+    return static_cast<T>(value);
 }
 
 // DONE: An example of how to read data from the filesystem
@@ -93,9 +94,9 @@ vector<int> LinuxParser::Pids() {
 float LinuxParser::MemoryUtilization() {
     string memTotal = filterMemTotalString;
     string memFree = filterMemFreeString;
-    float Total = findValueByKey<float>(memTotal, kMeminfoFilename);// "/proc/memInfo"
-    float Free = findValueByKey<float>(memFree, kMeminfoFilename);
-    return (Total - Free) / Total;
+    long Total = findValueByKey<long>(memTotal, kMeminfoFilename);// "/proc/memInfo"
+    long Free = findValueByKey<long>(memFree, kMeminfoFilename);
+    return static_cast<float>(Total - Free) / Total;
 }
 
 long LinuxParser::UpTime() {
@@ -244,11 +245,16 @@ string LinuxParser::Command(int pid) {
 }
 
 string LinuxParser::Ram(int pid) {
-    long memory_usage = 0;
+    float memory_usage = 0;
     string memSize = filterProcMem;
-    float memory_usage = findValueByKey<float>(memSize, kProcDirectory + std::to_string(pid) + kStatusFilename);
+  	string result = "";
+    memory_usage = findValueByKey<float>(memSize, std::to_string(pid) + kStatusFilename);
     memory_usage /= 1024; // Convert to MB
-    return std::to_string(memory_usage);
+  	
+  	//Format to make the values human readable. 
+    result = std::to_string(memory_usage);
+  	result = result.substr(0, result.find(".") + 3);
+  	return result;
 }
 
 string LinuxParser::Uid(int pid) {
@@ -276,11 +282,12 @@ string LinuxParser::User(int pid) {
     p_file.open(kPasswordPath);
     string str_line;
     string user_name;
-    int user_id
+    int user_id;
     string tmp;
 
     if (p_file.is_open()) {
         while (getline(p_file, str_line)) {
+          	std::replace(str_line.begin(), str_line.end(), ':', ' ');
             std::istringstream stream_line(str_line);
             stream_line >> user_name >> tmp >> user_id;
             if(std::to_string(user_id) == uid){
